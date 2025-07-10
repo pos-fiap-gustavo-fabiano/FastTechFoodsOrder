@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5043",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "CONNECTION_STRING_DATABASE": "mongodb+srv://hackathon-user:ghErenNremKwV5ow@cluster0.on3uzpj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+            "RABBITMQ_CONNECTION_STRING": "amqps://swugykvo:S_0eJdIk7OrFeqpMqgTRd9RhY54do89M@fly.rmq.cloudamqp.com/swugykvo"
+        }
+    }
+  }
+}

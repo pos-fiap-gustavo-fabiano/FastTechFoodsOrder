@@ -1,0 +1,127 @@
+# API Endpoints Documentation
+
+## Orders
+
+### 1. List Orders
+- **Endpoint:** `GET /api/orders`
+- **Query Parameters:**
+  - `customerId` (string, optional): Filter orders by customer ID
+- **Response:**
+  - **200 OK**
+  - **Body:** Array of `OrderDto`
+
+#### OrderDto Example
+```json
+{
+  "id": "string",
+  "customerId": "string",
+  "orderDate": "2025-07-09T12:34:56Z",
+  "status": "string",
+  "deliveryMethod": "string",
+  "cancelReason": "string",
+  "total": 100.0,
+  "items": [
+    {
+      "productId": "string",
+      "name": "string",
+      "quantity": 1,
+      "unitPrice": 10.0
+    }
+  ],
+  "statusHistory": [
+    {
+      "status": "string",
+      "statusDate": "2025-07-09T12:34:56Z",
+      "updatedBy": "string"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Order by ID
+- **Endpoint:** `GET /api/orders/{id}`
+- **Response:**
+  - **200 OK**
+  - **Body:** `OrderDto`
+  - **404 Not Found**
+
+---
+
+### 3. Create Order
+- **Endpoint:** `POST /api/orders`
+- **Request Body:** `CreateOrderDto`
+
+#### CreateOrderDto Example
+```json
+{
+  "customerId": "string",
+  "deliveryMethod": "string",
+  "items": [
+    {
+      "productId": "string",
+      "name": "string",
+      "quantity": 1,
+      "unitPrice": 10.0
+    }
+  ]
+}
+```
+- **Response:**
+  - **201 Created**
+  - **Body:** `OrderDto`
+
+---
+
+### 4. Update Order Status
+- **Endpoint:** `PATCH /api/orders/{id}/status`
+- **Request Body:** `UpdateOrderStatusDto`
+
+#### UpdateOrderStatusDto Example
+```json
+{
+  "status": "string",
+  "updatedBy": "string",
+  "cancelReason": "string"
+}
+```
+- **Response:**
+  - **204 No Content**
+  - **404 Not Found**
+
+---
+
+## DTOs
+
+### OrderDto
+- `id`: string
+- `customerId`: string
+- `orderDate`: string (ISO 8601)
+- `status`: string
+- `deliveryMethod`: string
+- `cancelReason`: string
+- `total`: decimal
+- `items`: array of OrderItemDto
+- `statusHistory`: array of OrderStatusHistoryDto
+
+### CreateOrderDto
+- `customerId`: string
+- `deliveryMethod`: string
+- `items`: array of CreateOrderItemDto
+
+### UpdateOrderStatusDto
+- `status`: string
+- `updatedBy`: string
+- `cancelReason`: string
+
+### OrderItemDto / CreateOrderItemDto
+- `productId`: string
+- `name`: string
+- `quantity`: integer
+- `unitPrice`: decimal
+
+### OrderStatusHistoryDto
+- `status`: string
+- `statusDate`: string (ISO 8601)
+- `updatedBy`: string
