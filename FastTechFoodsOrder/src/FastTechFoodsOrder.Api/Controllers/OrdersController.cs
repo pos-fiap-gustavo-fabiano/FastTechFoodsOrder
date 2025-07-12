@@ -40,7 +40,7 @@ namespace FastTechFoodsOrder.Api.Controllers
             [FromServices] IValidator<CreateOrderDto> validator)
         {
             var validationResult = await validator.ValidateAsync(dto);
-            if (validationResult.IsValid) {
+            if (!validationResult.IsValid) {
                 return BadRequest(validationResult.Errors);
             }
             var created = await _orderService.CreateOrderAsync(dto);

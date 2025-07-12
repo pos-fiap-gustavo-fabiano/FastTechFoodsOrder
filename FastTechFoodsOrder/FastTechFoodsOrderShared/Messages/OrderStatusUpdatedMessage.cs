@@ -11,6 +11,7 @@
 
     public class OrderPendingMessage : OrderStatusUpdatedMessage { }
     public class OrderAcceptedMessage : OrderStatusUpdatedMessage { }
+    public class OrderCreatedMessage : OrderStatusUpdatedMessage { }
     public class OrderPreparingMessage : OrderStatusUpdatedMessage { }
     public class OrderReadyMessage : OrderStatusUpdatedMessage { }
     public class OrderCompletedMessage : OrderStatusUpdatedMessage { }

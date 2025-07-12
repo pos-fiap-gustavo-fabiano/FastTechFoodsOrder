@@ -1,95 +1,154 @@
 ﻿using FastTechFoodsOrder.Application.DTOs;
 using FastTechFoodsOrder.Application.Interfaces;
 using FastTechFoodsOrder.Domain.Entities;
+using FastTechFoodsOrder.Shared.Messages;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace FastTechFoodsOrder.Application.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IOutboxRepository _outboxRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        
+        // OpenTelemetry ActivitySource para tracing
+        private static readonly ActivitySource ActivitySource = new("FastTechFoodsOrder.OrderService");
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(
+            IOrderRepository orderRepository,
+            IOutboxRepository outboxRepository,
+            IUnitOfWork unitOfWork)
         {
             _orderRepository = orderRepository;
+            _outboxRepository = outboxRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrdersAsync(string customerId = null)
+        public async Task<IEnumerable<OrderDto>> GetOrdersAsync(string? customerId = null)
         {
             var orders = await _orderRepository.GetOrdersAsync(customerId);
             return orders.Select(MapToDto).OrderByDescending(x => x.OrderDate);
         }
 
-        public async Task<OrderDto> GetOrderByIdAsync(string id)
+        public async Task<OrderDto?> GetOrderByIdAsync(string? id)
         {
+            if (string.IsNullOrEmpty(id)) return null;
             var order = await _orderRepository.GetOrderByIdAsync(id);
             return order == null ? null : MapToDto(order);
         }
 
         public async Task<OrderDto> CreateOrderAsync(CreateOrderDto dto)
         {
-            var order = new Order
+            //using var activity = ActivitySource.StartActivity("order.create");
+            //activity?.SetTag("customer.id", dto.CustomerId);
+            //activity?.SetTag("order.delivery_method", dto.DeliveryMethod);
+            //activity?.SetTag("order.items_count", dto.Items.Count);
+            
+            return await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                CustomerId = dto.CustomerId,
-                OrderDate = DateTime.UtcNow,
-                Status = "pending",
-                DeliveryMethod = dto.DeliveryMethod,
-                Items = dto.Items.Select(i => new OrderItem
+                var order = new Order
                 {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice, 
-                    Name = i.Name
-                }).ToList(),
-                StatusHistory = new List<OrderStatusHistory>
-                {
-                    new OrderStatusHistory
+                    CustomerId = dto.CustomerId,
+                    OrderDate = DateTime.UtcNow,
+                    Status = "pending",
+                    DeliveryMethod = dto.DeliveryMethod,
+                    Items = dto.Items.Select(i => new OrderItem
                     {
-                        Status = "pending",
-                        StatusDate = DateTime.UtcNow,
-                        UpdatedBy = "system"
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        Name = i.Name
+                    }).ToList(),
+                    StatusHistory = new List<OrderStatusHistory>
+                    {
+                        new OrderStatusHistory
+                        {
+                            Status = "pending",
+                            StatusDate = DateTime.UtcNow,
+                            UpdatedBy = "system"
+                        }
                     }
-                }
-            };
+                };
 
-            // Calculate Total (if you fetch UnitPrice from Product Service, do here)
-            order.Total = order.Items.Sum(i => i.UnitPrice * i.Quantity);
+                // Calculate Total
+                order.Total = order.Items.Sum(i => i.UnitPrice * i.Quantity);
+                //activity?.SetTag("order.total", order.Total);
 
-            var createdOrder = await _orderRepository.CreateOrderAsync(order);
-            return MapToDto(createdOrder);
+                var createdOrder = await _orderRepository.CreateOrderAsync(order);
+                //activity?.SetTag("order.id", createdOrder.Id);
+
+                // Add outbox event with trace context
+                var orderCreatedEvent = new OrderCreatedMessage
+                {
+                    OrderId = createdOrder.Id,
+                };
+
+                var outboxEvent = new OutboxEvent
+                {
+                    EventType = nameof(OrderCreatedMessage),
+                    EventData = JsonSerializer.Serialize(orderCreatedEvent),
+                    CreatedAt = DateTime.UtcNow,
+                    AggregateId = createdOrder.Id,
+                    CorrelationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString() // Propaga TraceId!
+                };
+
+                await _outboxRepository.AddEventAsync(outboxEvent);
+                //activity?.SetTag("outbox.event_id", outboxEvent.Id);
+                //activity?.SetTag("order.status", "created");
+
+                return MapToDto(createdOrder);
+            });
         }
 
         public async Task<bool> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto)
         {
-            // Busca o pedido atual para obter o status anterior
-            var currentOrder = await _orderRepository.GetOrderByIdAsync(id);
-            if (currentOrder == null)
-                return false;
+            //using var activity = ActivitySource.StartActivity("order.update_status");
+            //activity?.SetTag("order.id", id);
+            //activity?.SetTag("order.new_status", dto.Status);
+            //activity?.SetTag("order.updated_by", dto.UpdatedBy);
+            
+            return await _unitOfWork.ExecuteInTransactionAsync(async (session) =>
+            {
+                // Busca o pedido atual para obter o status anterior
+                var currentOrder = await _orderRepository.GetOrderByIdAsync(id);
+                if (currentOrder == null)
+                {
+                    //activity?.SetTag("order.found", false);
+                    return false;
+                }
 
-            var previousStatus = currentOrder.Status;
+                var previousStatus = currentOrder.Status;
+                //activity?.SetTag("order.previous_status", previousStatus);
 
-            // Atualiza o status no repositório
-            var success = await _orderRepository.UpdateOrderStatusAsync(id, dto.Status, dto.UpdatedBy, dto.CancelReason);
-
-            //if (success)
-            //{
-            //    // Busca o pedido atualizado para publicar na mensagem
-            //    var updatedOrder = await _orderRepository.GetOrderByIdAsync(id);
-            //    if (updatedOrder != null)
-            //    {
-            //        var orderDto = MapToDto(updatedOrder);
-
-            //        // Publica a mensagem de atualização de status
-            //        await _messagePublisher.PublishOrderStatusUpdatedAsync(
-            //            orderDto,
-            //            previousStatus,
-            //            dto.Status,
-            //            dto.UpdatedBy,
-            //            dto.CancelReason
-            //        );
-            //    }
-            //}
-
-            return success;
+                // 1. Atualiza o pedido
+                var success = await _orderRepository.UpdateOrderStatusAsync(id, dto.Status, dto.UpdatedBy, session, dto.CancelReason);
+                
+                if (success)
+                {
+                    // 2. Cria evento para outbox
+                    var orderEvent = new OutboxEvent
+                    {
+                        EventType = nameof(OrderStatusUpdatedMessage),
+                        EventData = JsonSerializer.Serialize(new OrderStatusUpdatedMessage
+                        {
+                            OrderId = id,
+                            UpdatedAt = DateTime.UtcNow,
+                        }),
+                        CreatedAt = DateTime.UtcNow,
+                        AggregateId = id,
+                        CorrelationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString() // Propaga TraceId!
+                    };
+                    
+                    // 3. Salva evento (na mesma transação!)
+                    await _outboxRepository.AddEventAsync(orderEvent, session);
+                    //activity?.SetTag("outbox.event_id", orderEvent.Id);
+                    //activity?.SetTag("order.status_updated", true);
+                }
+                
+                return success;
+            });
         }
 
         // --- Mapping methods ---
@@ -110,13 +169,13 @@ namespace FastTechFoodsOrder.Application.Services
                     Name = i.Name,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
-                }).ToList(),
+                }).ToList() ?? new List<OrderItemDto>(),
                 StatusHistory = order.StatusHistory?.Select(s => new OrderStatusHistoryDto
                 {
                     Status = s.Status,
                     StatusDate = s.StatusDate,
                     UpdatedBy = s.UpdatedBy
-                }).ToList()
+                }).ToList() ?? new List<OrderStatusHistoryDto>()
             };
         }
     }

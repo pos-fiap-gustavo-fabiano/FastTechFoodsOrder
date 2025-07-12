@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace FastTechFoodsOrder.Application.Validators
 {
-    internal class UpdateOrderSatusValidator : AbstractValidator<UpdateOrderStatusDto>
+    public class UpdateOrderSatusValidator : AbstractValidator<UpdateOrderStatusDto>
     {
         public UpdateOrderSatusValidator()
         {
