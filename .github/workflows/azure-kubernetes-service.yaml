@@ -123,4 +123,4 @@ jobs:
 
       - name: Restart deployment to pull latest image
         run: |
-          kubectl rollout restart deployment/fasttechfoods-order -n fasttechfoods
+          kubectl rollout restart deployment/fasttechfoods-order-api -n fasttechfoods
