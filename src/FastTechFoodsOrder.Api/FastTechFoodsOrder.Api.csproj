@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FastTechFoodsOrderShared\FastTechFoodsOrder.Shared.csproj" />
     <ProjectReference Include="..\FastTechFoodsOrder.Application\FastTechFoodsOrder.Application.csproj" />
     <ProjectReference Include="..\FastTechFoodsOrder.Infra\FastTechFoodsOrder.Infra.csproj" />
 	<PackageReference Include="FastTechFoodsAuth.Security" Version="1.0.4" />

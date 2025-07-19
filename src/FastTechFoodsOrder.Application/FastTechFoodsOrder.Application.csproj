@@ -13,10 +13,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+	 <PackageReference Include="FastTechFoodsOrder.Shared" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FastTechFoodsOrderShared\FastTechFoodsOrder.Shared.csproj" />
     <ProjectReference Include="..\FastTechFoodsOrder.Domain\FastTechFoodsOrder.Domain.csproj" />
   </ItemGroup>
 
