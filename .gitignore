@@ -425,3 +425,4 @@ FodyWeavers.xsd
 /zabbix-ingress.yaml
 /zabbix-loadbalancer.yaml
 /ZABBIX_KUBERNETES_INSTALL.md
+/src/FastTechFoodsOrder.Api/Properties/launchSettings.json
