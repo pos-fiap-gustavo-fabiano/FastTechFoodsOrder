@@ -21,7 +21,7 @@ spec:
       serviceAccountName: fasttechfoods-order-workload-identity-sa
       containers:
       - name: fasttechfoods-order-api
-        image: hackathonpostech.azurecr.io/fasttechfoods-orde-apir:latest
+        image: hackathonpostech.azurecr.io/fasttechfoods-order-api:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
