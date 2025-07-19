@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fasttechfoods-order-api
+  namespace: fasttechfoods
+  labels:
+    app: fasttechfoods-order-api
+    component: api
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fasttechfoods-order-api
+  template:
+    metadata:
+      labels:
+        app: fasttechfoods-order-api
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: fasttechfoods-order-workload-identity-sa
+      containers:
+      - name: fasttechfoods-order-api
+        image: hackathonpostech.azurecr.io/fasttechfoods-order:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        - containerPort: 8081
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: fasttechfoods-order-api-secrets
+              key: JWT_SECRET
+        - name: CONNECTION_STRING_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: fasttechfoods-order-api-secrets
+              key: CONNECTION_STRING_DATABASE
+        - name: RABBITMQ_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: fasttechfoods-order-api-secrets
+              key: RABBITMQ_CONNECTION_STRING
+        volumeMounts:
+        - name: secrets-store
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        - name: tmp-volume
+          mountPath: /tmp
+        securityContext:
+          capabilities:
+            add: ["SYS_RESOURCE"]
+      volumes:
+      - name: secrets-store
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "fasttechfoods-order-secrets"
+      - name: tmp-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fasttechfoods-order-api-service
+  namespace: fasttechfoods
+  labels:
+    app: fasttechfoods-order-api
+    component: service
+spec:
+  type: LoadBalancer
+  selector:
+    app: fasttechfoods-order-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 8081
+    protocol: TCP

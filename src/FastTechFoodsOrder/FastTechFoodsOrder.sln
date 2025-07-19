@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{1E4E09
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastTechFoodsOrder.Shared", "FastTechFoodsOrderShared\FastTechFoodsOrder.Shared.csproj", "{EE03C8F1-734C-4EE9-A035-8E77B8CD7842}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastTechFoodsOrder.Tests", "..\..\tests\FastTechFoodsOrder.Tests\FastTechFoodsOrder.Tests.csproj", "{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{EE03C8F1-734C-4EE9-A035-8E77B8CD7842}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE03C8F1-734C-4EE9-A035-8E77B8CD7842}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE03C8F1-734C-4EE9-A035-8E77B8CD7842}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,5 +61,6 @@ Global
 		{423C6BD8-FD5D-4219-8E9B-6328908D9DCB} = {AFD61C9D-90B2-4E41-829A-95ADEC22662A}
 		{FF0552D5-6A7C-4730-B603-5E7E26B1FBC1} = {AFD61C9D-90B2-4E41-829A-95ADEC22662A}
 		{EE03C8F1-734C-4EE9-A035-8E77B8CD7842} = {1E4E0958-6075-4628-9149-73F9390F7357}
+		{A4A5D79B-3082-4AD7-A9BF-58FE89932AD4} = {817C4ECE-779D-4680-83D5-BFDC2084E9CB}
 	EndGlobalSection
 EndGlobal
