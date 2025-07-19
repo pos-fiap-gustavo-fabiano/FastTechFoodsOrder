@@ -22,8 +22,6 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-
-
 // Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -101,7 +99,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsAuth API", "v1", "API de autenticação para o sistema FastTechFoods");
+builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsOrder API", "v1", "API de autenticação para o sistema FastTechFoods");
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 

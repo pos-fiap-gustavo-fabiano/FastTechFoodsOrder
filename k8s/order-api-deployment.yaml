@@ -62,25 +62,4 @@ spec:
             secretProviderClass: "fasttechfoods-order-secrets"
       - name: tmp-volume
         emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: fasttechfoods-order-api-service
-  namespace: fasttechfoods
-  labels:
-    app: fasttechfoods-order-api
-    component: service
-spec:
-  type: LoadBalancer
-  selector:
-    app: fasttechfoods-order-api
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: 8081
-    protocol: TCP
+
