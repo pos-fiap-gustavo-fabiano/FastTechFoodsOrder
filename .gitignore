@@ -416,3 +416,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/zabbix-k8s-scripts
+/ingress.yaml
+/monitorar-zabbix-lb.ps1
+/new_token_b64.txt
+/teste-zabbix-ingress.ps1
+/zabbix-ingress-simple.yaml
+/zabbix-ingress.yaml
+/zabbix-loadbalancer.yaml
+/ZABBIX_KUBERNETES_INSTALL.md
