@@ -1,6 +1,7 @@
 ﻿using FastTechFoodsOrder.Application.DTOs;
 using FastTechFoodsOrder.Application.Interfaces;
 using FastTechFoodsOrder.Domain.Entities;
+using FastTechFoodsOrder.Shared.Integration.Messages;
 using System.Diagnostics;
 using System.Text.Json;
 
