@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: "hackathonpostech.azurecr.io"
-  CONTAINER_NAME: "fasttechfoods-order"
+  CONTAINER_NAME: "fasttechfoods-order-api"
   RESOURCE_GROUP: "rg-hackathon"
   CLUSTER_NAME: "aks-hackathon"
   DEPLOYMENT_MANIFEST_PATH: "k8s/order-api-deployment.yaml"
@@ -71,7 +71,7 @@ jobs:
       # Builds and pushes an image up to your Azure Container Registry
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:${{ github.sha }} -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:latest ./src
+          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:${{ github.sha }} -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:latest .
 
       - name: Push Docker image
         run: |
@@ -119,7 +119,7 @@ jobs:
           action: deploy
           manifests: ${{ env.DEPLOYMENT_MANIFEST_PATH }}
           images: |
-            hackathonpostech.azurecr.io/fasttechfoods-order:latest
+            ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:latest
 
       - name: Restart deployment to pull latest image
         run: |
