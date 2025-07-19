@@ -27,15 +27,15 @@ jobs:
 
       # Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore src/FastTechFoodsOrder.sln
+        run: dotnet restore FastTechFoodsOrder.sln
 
       # Build the solution
       - name: Build
-        run: dotnet build src/FastTechFoodsOrder.sln --no-restore --configuration Release
+        run: dotnet build FastTechFoodsOrder.sln --no-restore --configuration Release
 
       # Run tests
       - name: Run tests
-        run: dotnet test src/FastTechFoodsOrder.sln --no-build --configuration Release --verbosity normal --logger trx --results-directory TestResults
+        run: dotnet test FastTechFoodsOrder.sln --no-build --configuration Release --verbosity normal --logger trx --results-directory TestResults
 
       # Upload test results
       - name: Upload test results
