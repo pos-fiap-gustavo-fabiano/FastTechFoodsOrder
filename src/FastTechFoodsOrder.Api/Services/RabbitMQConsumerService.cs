@@ -27,16 +27,11 @@ namespace FastTechFoodsOrder.Api.Services
         {
             _logger.LogInformation("🚀 RabbitMQ Consumer Service starting...");
 
-            // Configurar consumidores para cada fila
             SetupConsumer<OrderAcceptedMessage>("order.accepted.queue");
             SetupConsumer<OrderPreparingMessage>("order.preparing.queue");
             SetupConsumer<OrderReadyMessage>("order.ready.queue");
-            //SetupConsumer<OrderCompletedMessage>("order.completed.queue");
+            SetupConsumer<OrderCompletedMessage>("order.completed.queue");
             SetupConsumer<OrderCancelledMessage>("order.cancelled.queue");
-            //SetupConsumer<OrderCreatedMessage>("order.created.queue");
-            //SetupConsumer<OrderPendingMessage>("order.pending.queue");
-            //SetupConsumer<OrderStatusUpdatedMessage>("order.status.updated.queue");
-
             _logger.LogInformation("✅ RabbitMQ Consumer Service started successfully!");
             return Task.CompletedTask;
         }
@@ -47,7 +42,6 @@ namespace FastTechFoodsOrder.Api.Services
             var connection = scope.ServiceProvider.GetRequiredService<IConnection>();
             var channel = await connection.CreateChannelAsync();
             
-            // Declarar fila
             await channel.QueueDeclareAsync(
                 queue: queueName,
                 durable: true,
@@ -55,7 +49,6 @@ namespace FastTechFoodsOrder.Api.Services
                 autoDelete: false,
                 arguments: null);
 
-            // Configurar QoS
             await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
@@ -85,18 +78,15 @@ namespace FastTechFoodsOrder.Api.Services
 
                     activity?.SetTag("message.content", messageJson);
                     
-                    // Deserializar mensagem
                     var message = JsonSerializer.Deserialize<T>(messageJson);
                     if (message == null)
                     {
                         throw new InvalidOperationException($"Failed to deserialize message to type {typeof(T).Name}");
                     }
                     
-                    // Processar mensagem com o handler apropriado (com timeout)
                     using var processingScope = _serviceProvider.CreateScope();
                     var handler = processingScope.ServiceProvider.GetRequiredService<IMessageHandler<T>>();
                     
-                    // Timeout de 30 segundos para evitar loop infinito
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                     
                     _logger.LogInformation("🔄 Starting to process message from queue {QueueName} with type {MessageType}", queueName, typeof(T).Name);
@@ -105,7 +95,6 @@ namespace FastTechFoodsOrder.Api.Services
                     
                     _logger.LogInformation("✅ Message processing completed for queue {QueueName}", queueName);
 
-                    // Acknowledgment - só chega aqui se o processamento foi bem-sucedido
                     await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
                     activity?.SetTag("rabbitmq.status", "acknowledged");
                     
@@ -118,7 +107,6 @@ namespace FastTechFoodsOrder.Api.Services
                     
                     _logger.LogError("⏰ Message processing timeout after 30 seconds for queue {QueueName}: {Message}", queueName, messageJson);
                     
-                    // Reject message and DO NOT requeue for timeout (to avoid infinite loop)
                     await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
                 }
                 catch (Exception ex)
@@ -128,7 +116,6 @@ namespace FastTechFoodsOrder.Api.Services
                     
                     _logger.LogError(ex, "❌ Error processing message from queue {QueueName}: {Message}", queueName, messageJson);
                     
-                    // Para outros erros, pode requeue com limite
                     var shouldRequeue = !ex.Message.Contains("Failed to deserialize"); // Não requeue erros de deserialização
                     await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: shouldRequeue);
                     

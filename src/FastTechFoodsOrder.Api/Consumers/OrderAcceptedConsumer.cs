@@ -2,7 +2,9 @@
 using FastTechFoodsOrder.Api.Interfaces;
 using FastTechFoodsOrder.Application.DTOs;
 using FastTechFoodsOrder.Application.Interfaces;
+using FastTechFoodsOrder.Shared.Enums;
 using FastTechFoodsOrder.Shared.Integration.Messages;
+using FastTechFoodsOrder.Shared.Utils;
 
 namespace FastTechFoodsOrder.Api.Consumers
 {
@@ -26,10 +28,9 @@ namespace FastTechFoodsOrder.Api.Consumers
             _logger.LogInformation("Order ACCEPTED - OrderId: {OrderId}, UpdatedBy: {UpdatedBy}", 
                 message.OrderId, message.UpdatedBy);
             
-            // Atualiza o status no banco usando o método que NÃO cria nova mensagem no Outbox
             var dto = new UpdateOrderStatusDto
             {
-                Status = "accepted",
+                Status = OrderStatusUtils.ConvertStatusToString(OrderStatus.Accepted),
                 UpdatedBy = message.UpdatedBy,
             };
             
@@ -42,9 +43,6 @@ namespace FastTechFoodsOrder.Api.Consumers
                 childActivity?.SetTag("operation.success", false);
                 throw new Exception($"Failed to update order status to ACCEPTED for OrderId: {message.OrderId}");
             }
-            
-            // Aqui você pode adicionar outras lógicas de negócio para quando um pedido é aceito
-            // Por exemplo: notificar cozinha, validar estoque, etc.
             
             _logger.LogInformation("Order acceptance processing completed for OrderId: {OrderId}", message.OrderId);
             childActivity?.SetTag("operation.success", true);

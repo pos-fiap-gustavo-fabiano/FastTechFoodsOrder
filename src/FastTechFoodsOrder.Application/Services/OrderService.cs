@@ -1,7 +1,9 @@
 ﻿using FastTechFoodsOrder.Application.DTOs;
 using FastTechFoodsOrder.Application.Interfaces;
 using FastTechFoodsOrder.Domain.Entities;
+using FastTechFoodsOrder.Shared.Enums;
 using FastTechFoodsOrder.Shared.Integration.Messages;
+using FastTechFoodsOrder.Shared.Utils;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -52,7 +54,7 @@ namespace FastTechFoodsOrder.Application.Services
                 {
                     CustomerId = dto.CustomerId,
                     OrderDate = DateTime.UtcNow,
-                    Status = "pending",
+                    Status = OrderStatusUtils.ConvertStatusToString(OrderStatus.Pending),
                     DeliveryMethod = dto.DeliveryMethod,
                     Items = dto.Items.Select(i => new OrderItem
                     {
@@ -65,7 +67,7 @@ namespace FastTechFoodsOrder.Application.Services
                     {
                         new OrderStatusHistory
                         {
-                            Status = "pending",
+                            Status = OrderStatusUtils.ConvertStatusToString(OrderStatus.Pending),
                             StatusDate = DateTime.UtcNow,
                             UpdatedBy = "system"
                         }
