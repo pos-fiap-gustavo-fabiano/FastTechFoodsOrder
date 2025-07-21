@@ -26,6 +26,9 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsAuth API", "v1", "API de autenticação para o sistema FastTechFoods");
+// ✨ Configuração simplificada da autenticação JWT usando a biblioteca
+builder.Services.AddFastTechFoodsJwtAuthentication(builder.Configuration);
 
 // Register DbContext
 builder.Services.AddScoped<FastTechFoodsOrder.Infra.Context.ApplicationDbContext>();
@@ -72,14 +75,13 @@ builder.Services.AddScoped<IChannel>(sp =>
     return connection.CreateChannelAsync().Result;
 });
 
-// Register RabbitMQ Publisher
 builder.Services.AddScoped<IRabbitMQPublisher, RabbitMQPublisher>();
 
 // Register Message Handlers
 builder.Services.AddScoped<IMessageHandler<OrderAcceptedMessage>, OrderAcceptedConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderPreparingMessage>, OrderPreparingConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderReadyMessage>, OrderReadyConsumer>();
-//builder.Services.AddScoped<IMessageHandler<OrderCompletedMessage>, OrderCompletedConsumer>();
+builder.Services.AddScoped<IMessageHandler<OrderCompletedMessage>, OrderCompletedConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderCancelledMessage>, OrderCancelledConsumer>();
 //builder.Services.AddScoped<IMessageHandler<OrderCreatedMessage>, OrderCreatedConsumer>();
 //builder.Services.AddScoped<IMessageHandler<OrderPendingMessage>, OrderPendingConsumer>();
@@ -99,7 +101,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsOrder API", "v1", "API de autenticação para o sistema FastTechFoods");
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 

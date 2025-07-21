@@ -28,10 +28,8 @@ namespace FastTechFoodsOrder.Infra.Repositories
         {
             var now = DateTime.UtcNow;
             
-            // Busca eventos prontos para processamento (sem NextRetryAt ou já passou da data)
             return await _outboxEvents
-                .Find(x => !x.IsProcessed && !x.IsDeadLetter && 
-                          (x.NextRetryAt == null || x.NextRetryAt <= now))
+                .Find(x => !x.IsProcessed && !x.IsDeadLetter)
                 .Sort(Builders<OutboxEvent>.Sort.Ascending(x => x.CreatedAt))
                 .Limit(batchSize)
                 .ToListAsync();

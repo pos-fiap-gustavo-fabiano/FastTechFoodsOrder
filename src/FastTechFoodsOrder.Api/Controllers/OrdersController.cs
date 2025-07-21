@@ -1,11 +1,13 @@
 ﻿using FastTechFoodsOrder.Application.DTOs;
 using FastTechFoodsOrder.Application.Interfaces;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FastTechFoodsOrder.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/orders")]
     public class OrdersController : ControllerBase
     {
@@ -47,11 +49,19 @@ namespace FastTechFoodsOrder.Api.Controllers
             return CreatedAtAction(nameof(GetOrderById), new { id = created.Id }, created);
         }
 
-        // PATCH /api/orders/{id}/status
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateOrderStatus(string id, [FromBody] UpdateOrderStatusDto dto)
         {
             var updated = await _orderService.UpdateOrderStatusAsync(id, dto);
+            if (!updated)
+                return NotFound();
+            return NoContent();
+        }
+
+        [HttpPut("cancel/{id}")]
+        public async Task<IActionResult> OrderCancel(string id, [FromBody] UpdateOrderStatusDto dto)
+        {
+            var updated = await _orderService.CancelOrderAsync(id, dto);
             if (!updated)
                 return NotFound();
             return NoContent();

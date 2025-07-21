@@ -49,7 +49,7 @@ namespace FastTechFoodsOrder.Api.Consumers
             catch (Exception ex)
             {
                 _logger.LogError("Error processing OrderCancelledMessage for OrderId: {OrderId}", message.OrderId);
-                throw ex;
+                
             }
         }
     }

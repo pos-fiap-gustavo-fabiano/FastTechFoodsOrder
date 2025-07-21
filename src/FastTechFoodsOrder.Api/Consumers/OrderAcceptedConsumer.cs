@@ -34,7 +34,6 @@ namespace FastTechFoodsOrder.Api.Consumers
                 UpdatedBy = message.UpdatedBy,
             };
             
-            // Usa UpdateOrderStatusDirectAsync para evitar loop infinito
             var updated = await _orderService.UpdateOrderStatusDirectAsync(message.OrderId, dto);
             
             if (!updated)

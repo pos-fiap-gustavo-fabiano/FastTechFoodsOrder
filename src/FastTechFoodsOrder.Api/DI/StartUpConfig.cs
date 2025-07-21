@@ -12,7 +12,12 @@ namespace FastTechFoodsOrder.Api.DI
 
             builder.Services.AddSingleton<IMongoClient>(sp =>
             {
-                return new MongoClient(connectionString);
+                var settings = MongoClientSettings.FromConnectionString(connectionString);
+                
+                // Set the ServerApi field to ensure consistent API version usage
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                
+                return new MongoClient(settings);
             });
             builder.Services.AddFastTechFoodsObservabilityWithSerilog(builder.Configuration);
             builder.Services.AddFastTechFoodsPrometheus(builder.Configuration);

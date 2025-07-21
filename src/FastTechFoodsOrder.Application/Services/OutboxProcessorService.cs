@@ -133,60 +133,15 @@ namespace FastTechFoodsOrder.Application.Services
                     }
                     break;
 
-                //case nameof(OrderStatusUpdatedMessage):
-                //    var statusUpdated = JsonSerializer.Deserialize<OrderStatusUpdatedMessage>(outboxEvent.EventData);
-                //    if (statusUpdated != null)
-                //    {
-                //        activity?.SetTag("order.id", statusUpdated.OrderId);
-                //        await rabbitMQPublisher.PublishAsync(statusUpdated, "order.status.updated.queue");
-                //    }
-                //    break;
-
-                //case nameof(OrderAcceptedMessage):
-                //    var orderAccepted = JsonSerializer.Deserialize<OrderAcceptedMessage>(outboxEvent.EventData);
-                //    if (orderAccepted != null)
-                //    {
-                //        activity?.SetTag("order.id", orderAccepted.OrderId);
-                //        activity?.SetTag("order.accepted_by", orderAccepted.UpdatedByUser);
-                //        await rabbitMQPublisher.PublishAsync(orderAccepted, "order.accepted.queue");
-                //    }
-                //    break;
-
-                //case nameof(OrderPreparingMessage):
-                //    var orderPreparing = JsonSerializer.Deserialize<OrderPreparingMessage>(outboxEvent.EventData);
-                //    if (orderPreparing != null)
-                //    {
-                //        activity?.SetTag("order.id", orderPreparing.OrderId);
-                //        await rabbitMQPublisher.PublishAsync(orderPreparing, "order.preparing.queue");
-                //    }
-                //    break;
-
-                //case nameof(OrderReadyMessage):
-                //    var orderReady = JsonSerializer.Deserialize<OrderReadyMessage>(outboxEvent.EventData);
-                //    if (orderReady != null)
-                //    {
-                //        activity?.SetTag("order.id", orderReady.OrderId);
-                //        await rabbitMQPublisher.PublishAsync(orderReady, "order.ready.queue");
-                //    }
-                //    break;
-
-                //case nameof(OrderCompletedMessage):
-                //    var orderCompleted = JsonSerializer.Deserialize<OrderCompletedMessage>(outboxEvent.EventData);
-                //    if (orderCompleted != null)
-                //    {
-                //        activity?.SetTag("order.id", orderCompleted.OrderId);
-                //        await rabbitMQPublisher.PublishAsync(orderCompleted, "order.completed.queue");
-                //    }
-                //    break;
-
-                //case nameof(OrderCancelledMessage):
-                //    var orderCancelled = JsonSerializer.Deserialize<OrderCancelledMessage>(outboxEvent.EventData);
-                //    if (orderCancelled != null)
-                //    {
-                //        activity?.SetTag("order.id", orderCancelled.OrderId);
-                //        await rabbitMQPublisher.PublishAsync(orderCancelled, "order.cancelled.queue");
-                //    }
-                //    break;
+                case nameof(OrderCancelledMessage):
+                    var orderCancelled = JsonSerializer.Deserialize<OrderCancelledMessage>(outboxEvent.EventData);
+                    if (orderCancelled != null)
+                    {
+                        activity?.SetTag("order.id", orderCancelled.OrderId);
+                        activity?.SetTag("order.cancelled_by", orderCancelled.CancelledBy);
+                        await rabbitMQPublisher.PublishAsync(orderCancelled, "order.user.cancelled.queue");
+                    }
+                    break;
 
                 //case nameof(OrderPendingMessage):
                 //    var orderPending = JsonSerializer.Deserialize<OrderPendingMessage>(outboxEvent.EventData);

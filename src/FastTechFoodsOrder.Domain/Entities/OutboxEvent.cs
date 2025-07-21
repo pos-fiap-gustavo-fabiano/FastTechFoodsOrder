@@ -13,8 +13,8 @@ namespace FastTechFoodsOrder.Domain.Entities
         public string EventData { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ProcessedAt { get; set; }
-        public DateTime? NextRetryAt { get; set; } // Nova propriedade para backoff
-        public bool IsProcessed { get; set; }
+        public DateTime? NextRetryAt { get; set; }
+        public bool IsProcessed { get; set; } = false;
         public int RetryCount { get; set; }
         public string? ErrorMessage { get; set; }
         public string AggregateId { get; set; } // OrderId

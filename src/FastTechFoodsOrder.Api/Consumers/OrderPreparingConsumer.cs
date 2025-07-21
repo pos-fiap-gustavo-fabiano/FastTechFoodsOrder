@@ -29,7 +29,6 @@ namespace FastTechFoodsOrder.Api.Consumers
                 message.OrderId, message.UpdatedBy);
 
             var id = message.OrderId;
-            // Atualiza o status do pedido para "preparing"
             var dto = new UpdateOrderStatusDto
             {
                 Status = OrderStatusUtils.ConvertStatusToString(OrderStatus.Preparing),

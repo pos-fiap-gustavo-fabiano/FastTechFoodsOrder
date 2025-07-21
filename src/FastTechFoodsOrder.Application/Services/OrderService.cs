@@ -74,14 +74,10 @@ namespace FastTechFoodsOrder.Application.Services
                     }
                 };
 
-                // Calculate Total
                 order.Total = order.Items.Sum(i => i.UnitPrice * i.Quantity);
-                //activity?.SetTag("order.total", order.Total);
 
                 var createdOrder = await _orderRepository.CreateOrderAsync(order);
-                //activity?.SetTag("order.id", createdOrder.Id);
 
-                // Add outbox event with trace context
                 var orderCreatedEvent = new OrderCreatedMessage
                 {
                     OrderId = createdOrder.Id,
@@ -110,8 +106,6 @@ namespace FastTechFoodsOrder.Application.Services
                 };
 
                 await _outboxRepository.AddEventAsync(outboxEvent);
-                //activity?.SetTag("outbox.event_id", outboxEvent.Id);
-                //activity?.SetTag("order.status", "created");
 
                 return MapToDto(createdOrder);
             });
@@ -119,23 +113,15 @@ namespace FastTechFoodsOrder.Application.Services
 
         public async Task<bool> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto)
         {
-            //using var activity = ActivitySource.StartActivity("order.update_status");
-            //activity?.SetTag("order.id", id);
-            //activity?.SetTag("order.new_status", dto.Status);
-            //activity?.SetTag("order.updated_by", dto.UpdatedBy);
-            
             return await _unitOfWork.ExecuteInTransactionAsync(async (session) =>
             {
-                // Busca o pedido atual para obter o status anterior
                 var currentOrder = await _orderRepository.GetOrderByIdAsync(id);
                 if (currentOrder == null)
                 {
-                    //activity?.SetTag("order.found", false);
                     return false;
                 }
 
                 var previousStatus = currentOrder.Status;
-                //activity?.SetTag("order.previous_status", previousStatus);
 
                 // 1. Atualiza o pedido
                 var success = await _orderRepository.UpdateOrderStatusAsync(id, dto.Status, dto.UpdatedBy, session, dto.CancelReason);
@@ -171,6 +157,61 @@ namespace FastTechFoodsOrder.Application.Services
             });
         }
 
+        public async Task<bool> CancelOrderAsync(string id, UpdateOrderStatusDto dto)
+        {
+            using var activity = ActivitySource.StartActivity("order.cancel");
+            activity?.SetTag("order.id", id);
+            activity?.SetTag("order.updated_by", dto.UpdatedBy);
+            activity?.SetTag("order.cancel_reason", dto.CancelReason);
+            
+            return await _unitOfWork.ExecuteInTransactionAsync(async (session) =>
+            {
+                var currentOrder = await _orderRepository.GetOrderByIdAsync(id);
+                if (currentOrder == null)
+                {
+                    activity?.SetTag("order.found", false);
+                    return false;
+                }
+
+                var previousStatus = currentOrder.Status;
+                activity?.SetTag("order.previous_status", previousStatus);
+
+                // 1. Atualiza o pedido para cancelado
+                var success = await _orderRepository.UpdateOrderStatusAsync(id, dto.Status, dto.UpdatedBy, session, dto.CancelReason);
+
+                if (success)
+                {
+                    // 2. Cria evento para outbox - será publicado na fila order.user.cancelled.queue
+                    var orderCancelledEvent = new OrderCancelledMessage
+                    {
+                        OrderId = id,
+                        EventType = "OrderCancelled",
+                        EventDate = DateTime.UtcNow,
+                        CustomerId = currentOrder.CustomerId,
+                        Status = dto.Status,
+                        CancelledBy = dto.UpdatedBy ?? "system",
+                        CancelReason = dto.CancelReason ?? "User cancellation"
+                    };
+
+                    var outboxEvent = new OutboxEvent
+                    {
+                        EventType = nameof(OrderCancelledMessage),
+                        EventData = JsonSerializer.Serialize(orderCancelledEvent),
+                        CreatedAt = DateTime.UtcNow,
+                        AggregateId = id,
+                        CorrelationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString()
+                    };
+
+                    // 3. Salva evento (na mesma transação!)
+                    await _outboxRepository.AddEventAsync(outboxEvent, session);
+                    activity?.SetTag("outbox.event_id", outboxEvent.Id);
+                    activity?.SetTag("order.cancelled", true);
+                }
+
+                return success;
+            });
+        }
+
         /// <summary>
         /// Atualiza apenas o status do pedido no banco de dados SEM criar eventos no Outbox.
         /// Use este método APENAS em consumers para evitar loops infinitos.
@@ -196,10 +237,8 @@ namespace FastTechFoodsOrder.Application.Services
                 var previousStatus = currentOrder.Status;
                 activity?.SetTag("order.previous_status", previousStatus);
 
-                // Atualiza APENAS o pedido no banco - SEM criar eventos no Outbox
                 var success = await _orderRepository.UpdateOrderStatusAsync(id, dto.Status, dto.UpdatedBy, dto.CancelReason);
                 
-                activity?.SetTag("order.status_updated", success);
                 return success;
             });
         }

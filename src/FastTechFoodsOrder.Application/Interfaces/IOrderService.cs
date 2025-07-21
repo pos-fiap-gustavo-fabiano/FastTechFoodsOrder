@@ -8,11 +8,8 @@ namespace FastTechFoodsOrder.Application.Interfaces
         Task<OrderDto?> GetOrderByIdAsync(string? id);
         Task<OrderDto> CreateOrderAsync(CreateOrderDto dto);
         Task<bool> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
-        
-        /// <summary>
-        /// Atualiza apenas o status do pedido no banco de dados SEM criar eventos no Outbox.
-        /// Use este método APENAS em consumers para evitar loops infinitos.
-        /// </summary>
+
+        Task<bool> CancelOrderAsync(string id, UpdateOrderStatusDto dto);
         Task<bool> UpdateOrderStatusDirectAsync(string id, UpdateOrderStatusDto dto);
     }
 }
