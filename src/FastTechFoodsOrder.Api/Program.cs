@@ -16,18 +16,14 @@ using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure logging to show in console
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsAuth API", "v1", "API de autenticação para o sistema FastTechFoods");
-// ✨ Configuração simplificada da autenticação JWT usando a biblioteca
+builder.Services.AddFastTechFoodsSwaggerWithJwt("FastTechFoodsOrder API", "v1", "API de pedidos para o sistema FastTechFoods");
 builder.Services.AddFastTechFoodsJwtAuthentication(builder.Configuration);
 
 // Register DbContext
@@ -44,13 +40,11 @@ builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
 builder.Services.AddScoped<IUnitOfWork, MongoUnitOfWork>();
 builder.Services.AddHostedService<OutboxProcessorService>();
 
-// Register validators
 builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateOrderSatusValidator>();
 
 StartUpConfig.AddObservability(builder);
 
-// Configure RabbitMQ Client .NET
 builder.Services.AddSingleton<IConnectionFactory>(sp =>
 {
     var rabbitMqUri = Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION_STRING") ?? "amqp://localhost";
@@ -77,17 +71,12 @@ builder.Services.AddScoped<IChannel>(sp =>
 
 builder.Services.AddScoped<IRabbitMQPublisher, RabbitMQPublisher>();
 
-// Register Message Handlers
 builder.Services.AddScoped<IMessageHandler<OrderAcceptedMessage>, OrderAcceptedConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderPreparingMessage>, OrderPreparingConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderReadyMessage>, OrderReadyConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderCompletedMessage>, OrderCompletedConsumer>();
 builder.Services.AddScoped<IMessageHandler<OrderCancelledMessage>, OrderCancelledConsumer>();
-//builder.Services.AddScoped<IMessageHandler<OrderCreatedMessage>, OrderCreatedConsumer>();
-//builder.Services.AddScoped<IMessageHandler<OrderPendingMessage>, OrderPendingConsumer>();
-//builder.Services.AddScoped<IMessageHandler<OrderStatusUpdatedMessage>, OrderStatusUpdatedConsumer>();
 
-// Register RabbitMQ Background Service for consuming messages
 builder.Services.AddHostedService<RabbitMQConsumerService>();
 
 builder.Services.AddCors(options =>
@@ -124,6 +113,5 @@ logger.LogInformation("🔍 Health checks available at: /health");
 
 app.Run();
 
-// Make Program class accessible for testing
 public partial class Program { }
 
