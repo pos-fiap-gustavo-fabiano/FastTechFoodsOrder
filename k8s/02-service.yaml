@@ -5,33 +5,6 @@ metadata:
   namespace: fasttechfoods
   labels:
     app: fasttechfoods-order-api
-    component: service
-    workflowFriendlyName: Build_and_deploy_an_app_to_AKS
-    workflow: actions.github.com-k8s-deploy
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  type: LoadBalancer
-  selector:
-    app: fasttechfoods-order-api
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-    protocol: TCP
-  - name: https
-    port: 443
-    targetPort: 8081
-    protocol: TCP
-  sessionAffinity: None
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: fasttechfoods-order-api-service-internal
-  namespace: fasttechfoods
-  labels:
-    app: fasttechfoods-order-api
     component: service-internal
     workflowFriendlyName: Build_and_deploy_an_app_to_AKS
     workflow: actions.github.com-k8s-deploy
