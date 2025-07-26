@@ -18,7 +18,7 @@ spec:
         app: fasttechfoods-order-api
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: fasttechfoods-order-workload-identity-sa
+      serviceAccountName: fasttechfoods-auth-workload-identity-sa
       containers:
       - name: fasttechfoods-order-api
         image: fasttechfoods.azurecr.io/fasttechfoods-order-api:latest
