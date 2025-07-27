@@ -26,7 +26,6 @@ namespace FastTechFoodsOrder.Api.DI
 
         public static void UseObservability(WebApplication app)
         {
-            app.UseFastTechFoodsHealthChecksUI();
             app.UseFastTechFoodsPrometheus();
         }
     }

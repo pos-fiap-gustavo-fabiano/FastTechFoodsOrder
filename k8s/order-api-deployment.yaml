@@ -50,6 +50,10 @@ spec:
           readOnly: true
         - name: tmp-volume
           mountPath: /tmp
+        - name: config-volume
+          mountPath: /app/appsettings.json
+          subPath: appsettings.json
+          readOnly: true
         securityContext:
           capabilities:
             add: ["SYS_RESOURCE"]
@@ -62,4 +66,7 @@ spec:
             secretProviderClass: "fasttechfoods-order-secrets"
       - name: tmp-volume
         emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: fasttechfoods-order-api-config
 
