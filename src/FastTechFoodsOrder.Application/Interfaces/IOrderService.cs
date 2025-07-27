@@ -1,15 +1,15 @@
 ﻿using FastTechFoodsOrder.Application.DTOs;
+using FastTechFoodsOrder.Shared.Results;
 
 namespace FastTechFoodsOrder.Application.Interfaces
 {
     public interface IOrderService
     {
-        Task<IEnumerable<OrderDto>> GetOrdersAsync(string? customerId = null);
-        Task<OrderDto?> GetOrderByIdAsync(string? id);
-        Task<OrderDto> CreateOrderAsync(CreateOrderDto dto);
-        Task<bool> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
-
-        Task<bool> CancelOrderAsync(string id, UpdateOrderStatusDto dto);
-        Task<bool> UpdateOrderStatusDirectAsync(string id, UpdateOrderStatusDto dto);
+        Task<Result<IEnumerable<OrderDto>>> GetOrdersAsync(string? customerId = null);
+        Task<Result<OrderDto>> GetOrderByIdAsync(string? id);
+        Task<Result<OrderDto>> CreateOrderAsync(CreateOrderDto dto);
+        Task<Result> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
+        Task<Result> CancelOrderAsync(string id, UpdateOrderStatusDto dto);
+        Task<Result> UpdateOrderStatusDirectAsync(string id, UpdateOrderStatusDto dto);
     }
 }

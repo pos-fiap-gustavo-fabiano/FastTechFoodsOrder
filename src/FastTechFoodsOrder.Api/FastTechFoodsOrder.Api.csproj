@@ -19,7 +19,7 @@
   <ProjectReference Include="..\FastTechFoodsOrder.Infra\FastTechFoodsOrder.Infra.csproj" />
 	<PackageReference Include="FastTechFoodsAuth.Security" Version="1.0.4" />
 	<PackageReference Include="FastTechFoods.Observability" Version="2.6.0" />
-	 <PackageReference Include="FastTechFoodsOrder.Shared" Version="1.0.1" />
+	 <PackageReference Include="FastTechFoodsOrder.Shared" Version="2.7.0" />
   </ItemGroup>
 
 </Project>

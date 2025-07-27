@@ -54,12 +54,14 @@ public class OrderServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(order.Id);
-        result.CustomerId.Should().Be(order.CustomerId);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(order.Id);
+        result.Value.CustomerId.Should().Be(order.CustomerId);
     }
 
     [Fact]
-    public async Task GetOrderByIdAsync_WithNonExistingId_ShouldReturnNull()
+    public async Task GetOrderByIdAsync_WithNonExistingId_ShouldReturnFailure()
     {
         // Arrange
         var orderId = "non-existing-id";
@@ -70,7 +72,9 @@ public class OrderServiceTests
         var result = await _orderService.GetOrderByIdAsync(orderId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("não encontrado");
     }
 
     [Fact]
@@ -111,7 +115,9 @@ public class OrderServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Should().HaveCount(2);
     }
 
     [Fact]
@@ -125,13 +131,15 @@ public class OrderServiceTests
             UpdatedBy = "system"
         };
 
-        _mockOrderRepository.Setup(x => x.UpdateOrderStatusAsync(orderId, updateDto.Status, updateDto.UpdatedBy, null))
-            .ReturnsAsync(false);
+        _mockOrderRepository.Setup(x => x.GetOrderByIdAsync(orderId))
+            .ReturnsAsync((Order?)null);
 
         // Act
         var result = await _orderService.UpdateOrderStatusAsync(orderId, updateDto);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("não encontrado");
     }
 }

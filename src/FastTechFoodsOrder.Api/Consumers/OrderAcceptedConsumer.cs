@@ -34,13 +34,14 @@ namespace FastTechFoodsOrder.Api.Consumers
                 UpdatedBy = message.UpdatedBy,
             };
             
-            var updated = await _orderService.UpdateOrderStatusDirectAsync(message.OrderId, dto);
+            var result = await _orderService.UpdateOrderStatusDirectAsync(message.OrderId, dto);
             
-            if (!updated)
+            if (result.IsFailure)
             {
-                _logger.LogError("Failed to update order status to ACCEPTED for OrderId: {OrderId}", message.OrderId);
+                _logger.LogError("Failed to update order status to ACCEPTED for OrderId: {OrderId}. Error: {Error}", 
+                    message.OrderId, result.ErrorMessage);
                 childActivity?.SetTag("operation.success", false);
-                throw new Exception($"Failed to update order status to ACCEPTED for OrderId: {message.OrderId}");
+                throw new Exception($"Failed to update order status to ACCEPTED for OrderId: {message.OrderId}. Error: {result.ErrorMessage}");
             }
             
             _logger.LogInformation("Order acceptance processing completed for OrderId: {OrderId}", message.OrderId);

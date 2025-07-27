@@ -105,7 +105,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.UseCors("AllowAll");
 
-StartUpConfig.UseObservability(app);
+StartUpConfig.UseObservability(app);// Mapear health checks
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready");
 
 logger.LogInformation("✅ FastTechFoodsOrder API is ready and listening for requests!");
 logger.LogInformation("📊 Swagger UI available at: /swagger");
