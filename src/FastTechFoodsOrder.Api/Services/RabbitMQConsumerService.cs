@@ -115,17 +115,16 @@ namespace FastTechFoodsOrder.Api.Services
                     activity?.SetTag("rabbitmq.error", ex.Message);
                     
                     _logger.LogError(ex, "❌ Error processing message from queue {QueueName}: {Message}", queueName, messageJson);
+
                     
-                    var shouldRequeue = !ex.Message.Contains("Failed to deserialize"); // Não requeue erros de deserialização
-                    if (!shouldRequeue) // Erros irrecuperáveis
-                    {
-                        var dlqName = $"order.dlq.queue";
-                        await PublishToDLQAsync(channel, dlqName, messageJson);
-                    }
-                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: shouldRequeue);
+                   
+                        var dlqName = "order.dlq.queue";
+                        await PublishToDLQAsync(channel, dlqName, messageJson, ex.Message, queueName);
+                    
+                    await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
                     
                     _logger.LogWarning("📝 Message {Requeued} for queue {QueueName}", 
-                        shouldRequeue ? "requeued" : "rejected (not requeued)", queueName);
+                        false ? "requeued" : "rejected (not requeued)", queueName);
                 }
             };
 
@@ -135,12 +134,36 @@ namespace FastTechFoodsOrder.Api.Services
             _logger.LogInformation("🔗 Consumer configured for queue {QueueName} with message type {MessageType}", queueName, typeof(T).Name);
         }
 
-        private async Task PublishToDLQAsync(IChannel channel, string dlqName, string messageJson)
+        private async Task PublishToDLQAsync(IChannel channel, string dlqName, string messageJson, string originalError = null, string originalQueue = "")
         {
-            var body = Encoding.UTF8.GetBytes(messageJson);
-            await channel.QueueDeclareAsync(dlqName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-            await channel.BasicPublishAsync(exchange: "", routingKey: dlqName, body: body);
-            _logger.LogWarning("☠️ Message sent to DLQ {DLQName}: {Message}", dlqName, messageJson);
+            try
+            {
+                var dlqMessage = new
+                {
+                    OriginalMessage = messageJson,
+                    Error = originalError,
+                    RetryCount = 0,
+                    Queue = originalQueue,
+                    Timestamp = DateTimeOffset.UtcNow,
+                };
+
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(dlqMessage));
+                await channel.QueueDeclareAsync(dlqName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+                var properties = new BasicProperties
+                {
+                    Persistent = true,
+                    Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                };
+
+                await channel.BasicPublishAsync(exchange: "", routingKey: dlqName, mandatory: false, basicProperties: properties, body: new ReadOnlyMemory<byte>(body));
+                _logger.LogWarning("☠️ Message sent to DLQ {DLQName}", dlqName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Failed to send message to DLQ {DLQName}", dlqName);
+                // Não re-throw para não quebrar o fluxo principal
+            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
