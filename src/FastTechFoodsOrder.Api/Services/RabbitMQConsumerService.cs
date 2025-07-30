@@ -117,6 +117,11 @@ namespace FastTechFoodsOrder.Api.Services
                     _logger.LogError(ex, "❌ Error processing message from queue {QueueName}: {Message}", queueName, messageJson);
                     
                     var shouldRequeue = !ex.Message.Contains("Failed to deserialize"); // Não requeue erros de deserialização
+                    if (!shouldRequeue) // Erros irrecuperáveis
+                    {
+                        var dlqName = $"order.dlq.queue";
+                        await PublishToDLQAsync(channel, dlqName, messageJson);
+                    }
                     await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: shouldRequeue);
                     
                     _logger.LogWarning("📝 Message {Requeued} for queue {QueueName}", 
@@ -128,6 +133,14 @@ namespace FastTechFoodsOrder.Api.Services
             _channels.Add(channel);
             
             _logger.LogInformation("🔗 Consumer configured for queue {QueueName} with message type {MessageType}", queueName, typeof(T).Name);
+        }
+
+        private async Task PublishToDLQAsync(IChannel channel, string dlqName, string messageJson)
+        {
+            var body = Encoding.UTF8.GetBytes(messageJson);
+            await channel.QueueDeclareAsync(dlqName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            await channel.BasicPublishAsync(exchange: "", routingKey: dlqName, body: body);
+            _logger.LogWarning("☠️ Message sent to DLQ {DLQName}: {Message}", dlqName, messageJson);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -149,7 +162,7 @@ namespace FastTechFoodsOrder.Api.Services
 
             _channels.Clear();
             ActivitySource?.Dispose();
-            
+
             _logger.LogInformation("🛑 RabbitMQ Consumer Service stopped");
         }
     }
