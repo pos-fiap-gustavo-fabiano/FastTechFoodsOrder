@@ -46,7 +46,7 @@ namespace FastTechFoodsOrder.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
             var result = await _orderService.CreateOrderAsync(dto);
-            return Ok();
+            return Ok(result.Value);
         }
 
         [HttpPatch("{id}/status")]
